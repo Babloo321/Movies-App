@@ -3,7 +3,7 @@ import { movies } from "./getMovies";
 export default class extends Component {
   render() {
     // console.log(movies.results[0]);
-    let movie = movies.results[0];
+    let movie = movies.results[8];
     return (
       <>
         {movie == "" ? (
