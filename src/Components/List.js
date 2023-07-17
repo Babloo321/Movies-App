@@ -10,11 +10,40 @@ export default class List extends Component {
     this.state={
       hover: "",
       pageArr : [1],    // ab tak mai kon se page hu, what page am i showing
-      currPage: 2,
+      currPage: 1,
       movies:[],
     }
   }
-  
+  changeMovie = async () => {
+    console.log(this.state.currPage);
+    console.log("changeMovie is called");
+    let res = await axios.get(`https://api.themoviedb.org/3/movie/popular?api_key=3ade97d8d854fa3eda373ad1646650e3&language=eng-US&page=${this.state.currPage}`);
+    // console.log(res.data);
+    this.setState({
+      movies : [...res.data.results]   // [{},{},{}...]movies arrayObject
+    })
+  }
+  handleNext = () => {
+    let tempArr = [];
+    for(let i = 1; i <= this.state.pageArr.length; i++){
+      tempArr.push(i); // [1,2]
+    }
+    this.setState({
+      pageArr: [...tempArr], // use for ui
+      currPage: this.state.currPage + 1  //use for movie page
+    },this.changeMovie);
+  }
+  handlePrev = async () => {
+    if(this.state.currPage != 1){
+    this.setState({
+      currPage: this.state.currPage - 1,
+    }, this.changeMovie)
+  }}
+  handlePageNum = (pageNum) => {
+    this.setState({
+      currPage: pageNum
+    },this.changeMovie);
+  }
   handleEnter = (id) => {
     this.setState({
       hover : id
@@ -36,7 +65,7 @@ export default class List extends Component {
   render() {
     console.log("render is called");
     // console.log(movies)
-    let movie = movies.results;
+    let movie = this.state.movies.results;
     console.log(movie);
     return (
       <>
@@ -77,18 +106,15 @@ export default class List extends Component {
         <div className="pagination-page">
         <nav aria-label="Page navigation example">
   <ul className="pagination">
-    <li className="page-item"><a className="page-link" href="#">Previous</a></li>
-    {
-      this.state.pageArr.map(pageNum => (
+    <li className="page-item"><a className="page-link" onClick={this.handlePrev}>Previous</a></li>
+    {this.state.pageArr.map((pageNum) => (
         <li className="page-item">
-          <a className="page-link" href="#">{pageNum}</a>
-          </li>
-      ))
-    }
+          <a className="page-link" onClick={() => {this.handlePageNum(pageNum)}}>{pageNum}</a></li>
+      ))}
     {/* <li className="page-item"><a className="page-link" href="#">1</a></li> */}
     {/* <li className="page-item"><a className="page-link" href="#">2</a></li>
     <li className="page-item"><a className="page-link" href="#">3</a></li> */}
-    <li className="page-item"><a className="page-link" href="#">Next</a></li>
+    <li className="page-item"><a className="page-link" onClick={this.handleNext}>Next</a></li>
   </ul>
 </nav>
 </div>
