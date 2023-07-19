@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 // import { movies } from "./getMovies";
 import axios from "axios";
+import { json } from "react-router-dom";
 // API key: -> 3ade97d8d854fa3eda373ad1646650e3
 
 export default class List extends Component {
@@ -12,6 +13,7 @@ export default class List extends Component {
       pageArr : [1],    // ab tak mai kon se page hu, what page am i showing
       currPage: 1,
       movies:[],
+      favMovie : [],
     }
   }
   changeMovie = async () => {
@@ -52,6 +54,18 @@ export default class List extends Component {
   handleLeave = () => {
     this.setState({
       hover : ""
+    });
+  }
+  handleFavourite = (movieObj) => {
+    let localStorageMovies = JSON.parse(localStorage.getItem("movies")) || [];
+    if(this.state.favMovie.includes(movieObj.id)){
+      localStorageMovies = localStorageMovies.filter((movie) => movie.id != movieObj.id);
+    }
+    else localStorageMovies.push(movieObj);
+    localStorage.setItem("movies", JSON.stringify(localStorageMovies));
+    let tempData = localStorageMovies.map(localStorageMovObj => localStorageMovObj.id);
+    this.setState({
+      favMovie:[...tempData]
     });
   }
   async componentDidMount(){
@@ -95,7 +109,10 @@ export default class List extends Component {
                   <div className="button-wrapper">
                     {// if the this.state.hover is equal to movieObj.id than show button
                       this.state.hover == movieObj.id &&(
-                      <a href="#" className="btn btn-primary movie-button">Add to Favourites</a>
+                      <a href="#" className="btn btn-danger movie-button"
+                      onClick={()=>this.handleFavourite(movieObj)}>
+                        Add to Favourites
+                        </a>
                    )}
                   </div>
                 </div>
