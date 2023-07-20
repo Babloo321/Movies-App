@@ -9,6 +9,9 @@ export default class Favourites extends Component {
       movies: [],
       genre:[],
       currGenre : "All Genre",
+      currText : "",
+      limit: 5,
+      currPage: 1,
     };
   }
   async componentDidMount() {
@@ -56,8 +59,71 @@ export default class Favourites extends Component {
   handleCurrGen = (genreId) => {
     this.setState({
       currGenre : genreId,
+    });
+  };
+
+  handleText = (e) => {
+   this.setState({
+    currText : e.target.value
+   });
+  };
+
+  sortPopularityAsc = () => {
+    let allMovies = this.state.movies;
+    allMovies.sort((objA, objB) => {
+      return objA.popularity - objB.popularity;
+    });
+    this.setState({
+      movies: [...allMovies]
+    });
+  };
+
+  sortPopularityDesc = () => {
+    let allMovies = this.state.movies;
+    allMovies.sort((objA, objB) => {
+      return objB.popularity - objA.popularity;
+    });
+    this.setState({
+      movies: [...allMovies],
+    });
+  };
+
+  sortRatingAsc = () => {
+    let allMovies = this.state.movies;
+    allMovies.sort((objA, objB) => {
+      return objA.vote_average - objB.vote_average;
+    });
+    this.setState({
+      movies: [...allMovies],
+    });
+  };
+  sortRatingDesc = () => {
+    let allMovies = this.state.movies;
+    allMovies.sort((objA, objB) => {
+      return objB.vote_average - objA.vote_average;
+    });
+    this.setState({
+      movies: [...allMovies],
+    });
+  };
+
+  handlePageNum = (page) => {
+    this.setState({
+      currPage: page,
+    });
+  };
+  handleDelete = (id) => {
+    let newMovies = this.state.movies.filter((movieObj) => {
+      return movieObj.id != id;
+    });
+    this.setState({
+      movies: [...newMovies]
     })
+    localStorage.setItem("moveis", JSON.stringify(newMovies));
+
   }
+
+
   render() {
     let genreId = {
         28: "Action",
@@ -80,10 +146,32 @@ export default class Favourites extends Component {
         10752: "War",
         37: "Western",
       };
-      let filteredMovie = [];
+      let filteredMovie = this.state.movies;
+
+      if(this.state.currText == ''){
+        filteredMovie = this.state.movies;
+      } else{
+       filteredMovie = filteredMovie.filter((movieObj) => {
+          let movieName = movieObj.original_title.toLowerCase()
+          return movieName.includes(this.state.currText)
+       });
+      }
+
       if(this.state.currGenre != "All Genre"){
-        filteredMovie = this.state.movies.filter((movieObj) => genreId[movieObj.genre_ids[0]] == this.state.currGenre);
-      }else filteredMovie = this.state.movies;
+        filteredMovie = filteredMovie.filter(
+          (movieObj) => genreId[movieObj.genre_ids[0]] == this.state.currGenre
+          );
+        }
+
+        let numOfPages = Math.ceil(filteredMovie.length / this.state.limit);
+        let pageArr = [];
+        for(let i = 0; i <= numOfPages; i++){
+          pageArr.push(i);
+        }
+        let si = (this.state.currGenre -1) * this.state.limit;
+        let ei = si + this.state.limit - 1;
+        filteredMovie = filteredMovie.slice(si, ei + 1);
+
     return (
       <div className="row">
         <div className="col-3 favourites-list">
@@ -91,17 +179,35 @@ export default class Favourites extends Component {
           {this.state.genre.map((genre) => 
             this.state.currGenre == genre ? (
                 <li class="list-group-item active" aria-current="true">
-              {genre}</li> ):
-            <li class="list-group-item " aria-current="true" onClick={() => this.handleCurrGen(genre)}>
+              {genre}
+              </li> 
+              ):(
+            <li 
+            class="list-group-item " 
+            aria-current="true" 
+            onClick={() => this.handleCurrGen(genre)}
+            >
             {genre}
           </li>
+          )
         )}
             </ul>
         </div>
         <div className="col favourites-table">
           <div className="row">
-            <input type="text" placeholder="Search" className="col-8"></input>
-            <input type="text" placeholder="5" className="col-4"></input>
+            <input 
+            type="text" 
+            placeholder="Search" 
+            className="col-8" 
+            value={this.state.currText}
+             onChange ={this.handleText}
+             ></input>
+            <input 
+            type="number"  
+            className="col-4"
+            value = {this.state.limit}
+            onChange={(e) => this.setState({ limit : e.target.value})}
+            ></input>
           </div>
           <div class="row">
             <table class="table">
@@ -109,8 +215,28 @@ export default class Favourites extends Component {
                 <tr>
                   <th scope="col">Title</th>
                   <th scope="col">Genre</th>
-                  <th scope="col">Popularity</th>
-                  <th scope="col">Rating</th>
+                  <th scope="col">
+                    <i 
+                    class="fa-solid fa-sort-up" 
+                    onClick={this.sortPopularityAsc}
+                    />
+                  Popularity
+                  <i 
+                  class="fa-solid fa-sort-down" 
+                  onClick={this.sortPopularityDesc}
+                  />
+                  </th>
+                  <th scope="col">
+                    <i 
+                    class="fa-solid fa-sort-up" 
+                    onClick={this.sortRatingAsc}
+                    />
+                  Rating
+                  <i 
+                  class="fa-solid fa-sort-down" 
+                  onClick={this.sortRatingDesc}
+                  />
+                  </th>
                   <th scope="col"></th>
                 </tr>
               </thead>
@@ -126,14 +252,33 @@ export default class Favourites extends Component {
                     </td>
                     <td>{genreId[moviesObj.genre_ids[0]]}</td>
                     <td>{moviesObj.popularity}</td>
-                    <td>{moviesObj.vote_average}</td>
-                    <td><button type="button" class="btn btn-outline-danger">Delete</button></td>
+                    <td>{moviesObj.vote_average}
+                    </td>
+                    <td>
+                      <button
+                      class="btn btn-outline-danger"
+                      onClick={() => this.handleDelete(moviesObj.id)}
+                      >
+                        Delete
+                      </button>
+                      </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
+        <nav aria-label="Page navigation example">
+  <ul class="pagination">
+   {pageArr.map((page) =>(
+      <li class="page-item">
+      <a class="page-link" onClick={()=>this.handlePageNum(page)}>
+        {page}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
       </div>
     );
   }
