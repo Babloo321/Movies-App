@@ -7,7 +7,7 @@ import { json } from "react-router-dom";
 export default class List extends Component {
   constructor() {
     super();
-    console.log("constructor is called");
+    // console.log("constructor is called");
     this.state={
       hover: "",
       pageArr : [1],    // ab tak mai kon se page hu, what page am i showing
@@ -68,16 +68,17 @@ export default class List extends Component {
       favMovie:[...tempData]
     });
   }
+
   async componentDidMount(){
-    console.log("componentDidMount is called");
+    // console.log("componentDidMount is called");
     let res = await axios.get(`https://api.themoviedb.org/3/movie/popular?api_key=3ade97d8d854fa3eda373ad1646650e3&language=eng-US&page=${this.state.currPage}`);
-    console.log(res.data);
+    // console.log(res.data);
     this.setState({
       movies : [...res.data.results]   // [{},{},{}...]movies arrayObject
     })
   }
   render() {
-    console.log("render is called");
+    // console.log("render is called");
     // console.log(movies)
     let movie = this.state.movies.results;
     console.log(movie);
@@ -111,7 +112,7 @@ export default class List extends Component {
                       this.state.hover == movieObj.id &&(
                       <a href="#" className="btn btn-danger movie-button"
                       onClick={()=>this.handleFavourite(movieObj)}>
-                        Add to Favourites
+                        {this.state.favMovie.includes(movieObj.id) ? "Remove From Favourite" : "Add to Favourite"}
                         </a>
                    )}
                   </div>

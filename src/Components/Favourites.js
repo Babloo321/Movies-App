@@ -1,19 +1,22 @@
 import React, { Component } from "react";
 import axios from "axios";
 import { movies } from "./getMovies";
+import { json } from "react-router-dom";
 export default class Favourites extends Component {
   constructor() {
     super();
     this.state = {
       movies: [],
       genre:[],
+      currGenre : "All Genre",
     };
   }
   async componentDidMount() {
     // console.log("componentDidMount is called");
-    let res = await axios.get(
-      `https://api.themoviedb.org/3/movie/popular?api_key=3ade97d8d854fa3eda373ad1646650e3&language=eng-US&page=1`
-    );
+    // let res = await axios.get(
+      //   `https://api.themoviedb.org/3/movie/popular?api_key=3ade97d8d854fa3eda373ad1646650e3&language=eng-US&page=1`
+      // );
+      let result = JSON.parse(localStorage.getItem("movies"));
     let genreId = {
       28: "Action",
       12: "Adventure",
@@ -36,19 +39,24 @@ export default class Favourites extends Component {
       37: "Western",
     };
     let genreArr = [];
-    res.data.results.map((movieObj) => {
+    result.map((movieObj) => {
       if (!genreArr.includes(genreId[movieObj.genre_ids[0]])) {
         genreArr.push(genreId[movieObj.genre_ids[0]]);
       }
-    });
+  });
     genreArr.unshift("All genre");
     console.log(genreArr)
     // console.log(res.data);
     this.setState({
-      movies: [...res.data.results], // [{},{},{}...]movies arrayObject
+      movies: [...result], // [{},{},{}...]movies arrayObject
       genre:[...genreArr],
-      currGenre: "All genre",
     });
+  }
+
+  handleCurrGen = (genreId) => {
+    this.setState({
+      currGenre : genreId,
+    })
   }
   render() {
     let genreId = {
@@ -72,21 +80,22 @@ export default class Favourites extends Component {
         10752: "War",
         37: "Western",
       };
-    console.log(movies);
+      let filteredMovie = [];
+      if(this.state.currGenre != "All Genre"){
+        filteredMovie = this.state.movies.filter((movieObj) => genreId[movieObj.genre_ids[0]] == this.state.currGenre);
+      }else filteredMovie = this.state.movies;
     return (
       <div className="row">
         <div className="col-3 favourites-list">
           <ul class="list-group">
-          {this.state.genre.map((genre) =>(
-            this.state.currGenre == genre ?
+          {this.state.genre.map((genre) => 
+            this.state.currGenre == genre ? (
                 <li class="list-group-item active" aria-current="true">
-              {genre}
-            </li> :
-            <li class="list-group-item " aria-current="true">
+              {genre}</li> ):
+            <li class="list-group-item " aria-current="true" onClick={() => this.handleCurrGen(genre)}>
             {genre}
           </li>
-          ))
-            }
+        )}
             </ul>
         </div>
         <div className="col favourites-table">
@@ -106,7 +115,7 @@ export default class Favourites extends Component {
                 </tr>
               </thead>
               <tbody>
-                {this.state.movies.map((moviesObj) => (
+                {filteredMovie.map((moviesObj) => (
                   <tr>
                     <td scope="row">
                       <img
